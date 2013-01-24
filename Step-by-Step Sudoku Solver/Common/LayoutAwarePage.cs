@@ -273,6 +273,7 @@ namespace Step_by_Step_Sudoku_Solver.Common
             }
             else if (currentViewState == ApplicationViewState.Filled)
             {
+                //Currently uses same behaviour as FullScreenLandscape
                 MainPage.onFullLandscape();
             }
             else if (currentViewState == ApplicationViewState.FullScreenPortrait)

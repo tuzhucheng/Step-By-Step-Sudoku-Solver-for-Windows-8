@@ -10,19 +10,17 @@ namespace Step_by_Step_Sudoku_Solver
 {
     public class SudokuGrid
     {
-        public int newFills = 0;
-        public int colSlider = 0;
-        public int rowSlider = 0;
-        public int turns = 1;
-        public List Actions = new List();
-        public int guessHorizLoc = 0;
-        public int guessVertLoc = 0;
-        public int guessedValue = 0;
-        public Unit[,] Grid = new Unit[9, 9];
-        public bool displayed = false; //Debugging -> toggle display indicator //Not currently used
+        public int newFills = 0; //Stores the number of new squares filled out in a particular iteration
+        public int colSlider = 0, rowSlider = 0; //Cursors that slide down columns and across rows
+        public int turns = 1; //Number of iterations
+        public List Actions = new List(); //Used to store snapshots of grids in earlier stages
+        public int guessHorizLoc = 0, guessVertLoc = 0; //Location of square being guessed
+        public int guessedValue = 0; //Guessed value
+        public Unit[,] Grid = new Unit[9, 9]; //Array to store the 9x9 grid
 
         public SudokuGrid()
         {
+            //Create each of the units on the 9x9 grid
             for (int x = 0; x < 9; x++)
             {
                 for (int y = 0; y < 9; y++)
@@ -30,17 +28,7 @@ namespace Step_by_Step_Sudoku_Solver
             }
         }
 
-        public int[,] debugDisplay() //Display grid for debugging //Not currently used
-        {
-            int[,] miniGrid = new int[9, 9];
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                    miniGrid[i, j] = Grid[i, j].value;
-            }
-            return miniGrid;
-        }
-
+        //Fill in a particular value for a particular square
         public void fillIn(Unit Temp, int value)
         {
             Temp.value = value;
@@ -53,7 +41,8 @@ namespace Step_by_Step_Sudoku_Solver
             Temp.uncertain = false;
         }
 
-        public void eliminate(Unit compareTo, Unit current) //Eliminate choices in current based on value of compareTo
+        //Eliminate choices in current based on value of compareTo
+        public void eliminate(Unit compareTo, Unit current)
         {
             int eliminatedChoice = 0;
             if (compareTo.possibilityCounter == 1)
@@ -68,7 +57,7 @@ namespace Step_by_Step_Sudoku_Solver
             }
         }
 
-        //Eliminate using the idea that nothing can repeat in the same row, column, square
+        //Eliminate using the idea that nothing can repeat in the same row, column, 3x3 square
         //i.e. values already present in the same row, column, square is eliminated from possibilities of
         //the current Unit.
         public int eliminateChoices(int rowMarker, int colMarker)
@@ -76,7 +65,7 @@ namespace Step_by_Step_Sudoku_Solver
             int rowSlider = 0, colSlider = 0;
             if (Grid[rowMarker, colMarker].possibilityCounter != 1)
             {
-                //Eliminating values based on row
+                //Eliminating values across row
                 //Eliminating values on the left
                 colSlider = colMarker;
                 while (colSlider != 0)
@@ -92,7 +81,7 @@ namespace Step_by_Step_Sudoku_Solver
                     eliminate(Grid[rowMarker, colSlider], Grid[rowMarker, colMarker]);
                 }
 
-                //Eliminating values based on column
+                //Eliminating values down column
                 //Eliminating values above
                 rowSlider = rowMarker;
                 while (rowSlider != 0)
@@ -242,13 +231,13 @@ namespace Step_by_Step_Sudoku_Solver
                             return 1; //Returns 1 if able to reduce possibilityCounter to one single value
                         }
                     }
-                    //Grid[rowMarker,colMarker].uncertain = false;
                 }
             }
             return 0;
         }
 
-        public void onlyChoiceElimination(int rowMarker, int colMarker, char identifier)
+        //If a position is the only allowed position to put a number in a given row, column, or 3x3 sub-grid, the onlyChoicePosition can deal with it
+        public int onlyChoiceElimination(int rowMarker, int colMarker, char identifier)
         {
             int rowSlider = 0;
             int colSlider = 0;
@@ -259,7 +248,7 @@ namespace Step_by_Step_Sudoku_Solver
                 rowSlider = rowMarker;
                 colSlider = colMarker;
                 totalPosLoc = 0;
-                if (identifier == 's')
+                if (identifier == 's') //3x3 square
                 {
                     for (int rowRev = 0; rowRev < 3; rowRev++)
                     {
@@ -274,7 +263,7 @@ namespace Step_by_Step_Sudoku_Solver
                         }
                     }
                 }
-                else if (identifier == 'r')
+                else if (identifier == 'r') //row
                 {
                     for (int colRev = 0; colRev < 9; colRev++)
                     {
@@ -285,7 +274,7 @@ namespace Step_by_Step_Sudoku_Solver
                         }
                     }
                 }
-                else if (identifier == 'c')
+                else if (identifier == 'c') //column
                 {
                     for (int rowRev = 0; rowRev < 9; rowRev++)
                     {
@@ -300,85 +289,24 @@ namespace Step_by_Step_Sudoku_Solver
                 if (totalPosLoc == 1 && Grid[rowSlider, colSlider].possibilityCounter != 1)
                 {
                     fillIn(Grid[rowSlider, colSlider], x);
-                    /*String identifierName;
-                    if (identifier == 's')
-                        identifierName = "3x3 square";
-                    else if (identifier == 'r')
-                        identifierName = "row";
-                    else
-                        identifierName = "column";*/
-                    //MainPage.messageBoxAddText(x + " must be in row " + (rowSlider+1) + " and column " + (colSlider+1) + " since this is the only place in the " + identifierName + " where we can put " + x + ".\n");
                     newFills++;
-                    eliminateChoices(rowSlider, colSlider);
+                    if (Step_by_Step_Sudoku_Solver.MainPage.stepByStepEnabled)
+                    {
+                        String identifierName;
+                        if (identifier == 's')
+                            identifierName = "3x3 sub-grid";
+                        else if (identifier == 'r')
+                            identifierName = "row";
+                        else
+                            identifierName = "column";
+                        MainPage.messageBoxReplaceText(x + " must be in row " + (rowSlider + 1) + " and column " + (colSlider + 1) + " since this is the only place in the " + identifierName + " where we can put a " + x + " without conflict.\n");
+                        return 1; //Returns 1 if step by step is enabled and onlyChoiceElimination did something
+                    }
+                    else
+                        eliminateChoices(rowSlider, colSlider); //Must not do this when step by step is enabled since this will likely solve multiple numbers
                 }
             }
-        }
 
-        public int onlyChoiceEliminationStepByStep(int rowMarker, int colMarker, char identifier)
-        {
-            int rowSlider = 0;
-            int colSlider = 0;
-            int totalPosLoc = 0;
-
-            for (int x = 1; x < 10; x++)
-            {
-                rowSlider = rowMarker;
-                colSlider = colMarker;
-                totalPosLoc = 0;
-                if (identifier == 's')
-                {
-                    for (int rowRev = 0; rowRev < 3; rowRev++)
-                    {
-                        for (int colRev = 0; colRev < 3; colRev++)
-                        {
-                            if (Grid[rowMarker - rowRev, colMarker - colRev].possibilities[x - 1] == true)
-                            {
-                                rowSlider = rowMarker - rowRev;
-                                colSlider = colMarker - colRev;
-                                totalPosLoc++;
-                            }
-                        }
-                    }
-                }
-                else if (identifier == 'r')
-                {
-                    for (int colRev = 0; colRev < 9; colRev++)
-                    {
-                        if (Grid[rowMarker, colMarker - colRev].possibilities[x - 1] == true)
-                        {
-                            colSlider = colMarker - colRev;
-                            totalPosLoc++;
-                        }
-                    }
-                }
-                else if (identifier == 'c')
-                {
-                    for (int rowRev = 0; rowRev < 9; rowRev++)
-                    {
-                        if (Grid[rowMarker - rowRev, colMarker].possibilities[x - 1] == true)
-                        {
-                            rowSlider = rowMarker - rowRev;
-                            totalPosLoc++;
-                        }
-                    }
-                }
-
-                if (totalPosLoc == 1 && Grid[rowSlider, colSlider].possibilityCounter != 1)
-                {
-                    fillIn(Grid[rowSlider, colSlider], x);
-                    String identifierName;
-                    if (identifier == 's')
-                        identifierName = "3x3 sub-grid";
-                    else if (identifier == 'r')
-                        identifierName = "row";
-                    else
-                        identifierName = "column";
-                    MainPage.messageBoxReplaceText(x + " must be in row " + (rowSlider + 1) + " and column " + (colSlider + 1) + " since this is the only place in the " + identifierName + " where we can put a " + x + " without conflict.\n");
-                    newFills++;
-                    return 1;
-                    //eliminateChoices(rowSlider, colSlider);
-                }
-            }
             return 0;
         }
 
@@ -404,7 +332,7 @@ namespace Step_by_Step_Sudoku_Solver
             {
                 for (int x = 0; x < 9; x++)
                     filled[x] = false;
-                //Checking row;
+                //Checking row
                 for (int x = 0; x < 9; x++)
                 {
                     for (int y = 0; y < 9; y++)
@@ -423,7 +351,7 @@ namespace Step_by_Step_Sudoku_Solver
 
                 for (int x = 0; x < 9; x++)
                     filled[x] = false;
-                //Checking column;
+                //Checking column
                 for (int x = 0; x < 9; x++)
                 {
                     for (int y = 0; y < 9; y++)
@@ -442,7 +370,7 @@ namespace Step_by_Step_Sudoku_Solver
 
                 for (int x = 0; x < 9; x++)
                     filled[x] = false;
-                //Checking square;
+                //Checking 3x3 grid
                 for (int x = 0; x < 9; x = x + 3)
                 {
                     for (int y = 0; y < 9; y = y + 3)
@@ -484,7 +412,7 @@ namespace Step_by_Step_Sudoku_Solver
                 {
                     for (int colMarker = 0; colMarker < 9; colMarker++)
                     {
-                        //Elimination based on only possible location in 3x3 square
+                        //Elimination based on only possible location in 3x3 grid
                         if ((colMarker == 2 || colMarker == 5 || colMarker == 8) && (rowMarker == 2 || rowMarker == 5 || rowMarker == 8))
                             onlyChoiceElimination(rowMarker, colMarker, 's');
 
@@ -501,7 +429,7 @@ namespace Step_by_Step_Sudoku_Solver
             } while (newFills != 0);
         }
 
-        public int deductiveReasoningStepByStep()
+        public int deductiveReasoningStepByStep() //Separate from deductiveReasoning since deductiveReasoning attempts to get as many numbers as it can while this only does it once
         {
             newFills = 0;
             for (int rowMarker = 0; rowMarker < 9; rowMarker++)
@@ -520,21 +448,21 @@ namespace Step_by_Step_Sudoku_Solver
                     //Elimination based on only possible location in 3x3 square
                     if ((colMarker == 2 || colMarker == 5 || colMarker == 8) && (rowMarker == 2 || rowMarker == 5 || rowMarker == 8))
                     {
-                        if (onlyChoiceEliminationStepByStep(rowMarker, colMarker, 's') == 1)
+                        if (onlyChoiceElimination(rowMarker, colMarker, 's') == 1)
                             return 1;
                     }
 
                     //Elimination based on only possible location in row
                     if (colMarker == 8)
                     {
-                        if (onlyChoiceEliminationStepByStep(rowMarker, colMarker, 'r') == 1)
+                        if (onlyChoiceElimination(rowMarker, colMarker, 'r') == 1)
                             return 1;
                     }
 
                     //Elimination based on only possible location in col
                     if (rowMarker == 8)
                     {
-                        if (onlyChoiceEliminationStepByStep(rowMarker, colMarker, 'c') == 1)
+                        if (onlyChoiceElimination(rowMarker, colMarker, 'c') == 1)
                             return 1;
                     }
                 }
@@ -671,13 +599,6 @@ namespace Step_by_Step_Sudoku_Solver
             }
             else
                 return 4;
-
-            /*if (!check('a'))
-            {
-                guessInvoked = true;
-                inductiveReasoning();
-            }*/
-
         }
 
         public void reset()

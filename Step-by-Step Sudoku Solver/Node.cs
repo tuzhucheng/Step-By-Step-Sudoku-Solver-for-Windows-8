@@ -9,7 +9,7 @@ namespace Step_by_Step_Sudoku_Solver
     public class Node
     {
         public Unit[,] Snapshot = new Unit[9, 9];
-        public Node next; //Pointers?
+        public Node next;
         public Node prev;
         public int guessValue;
         public int guessHoriz;

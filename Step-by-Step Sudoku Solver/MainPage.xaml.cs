@@ -134,66 +134,62 @@ namespace Step_by_Step_Sudoku_Solver
             this.InitializeComponent();
             freshSessionStart = false;
 
-            //Windows.UI.ViewManagement.ApplicationViewState currentViewState = Windows.UI.ViewManagement.ApplicationView.Value;
+            Color c = new Color();
+            c.A = 255;
+            c.R = 168;
+            c.B = 168;
+            c.G = 168;
 
-            //if (currentViewState.ToString().Equals("FullScreenLandscape"))
+            int index = 0;
 
-                Color c = new Color();
-                c.A = 255;
-                c.R = 168;
-                c.B = 168;
-                c.G = 168;
-
-                int index = 0;
-
-                for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
                 {
-                    for (int j = 0; j < 9; j++)
+                    //TextBoxGrid[i, j] = (TextBox)mainSection.FindName("_" + index.ToString());
+                    TextBoxGrid[i, j] = new TextBox();
+                    TextBoxGrid[i, j].Style = (Style)(this.Resources["SudokuUnitTextBox"]);
+                    TextBoxGrid[i, j].Name = "_" + index.ToString();
+                    TextBoxGrid[i, j].GotFocus += new RoutedEventHandler(gridGotFocus);
+                    TextBoxGrid[i, j].KeyDown += new KeyEventHandler(gridKeyDown);
+
+                    if (j >= 3 && j <= 5)
                     {
-                        //TextBoxGrid[i, j] = (TextBox)mainSection.FindName("_" + index.ToString());
-                        TextBoxGrid[i, j] = new TextBox();
-                        TextBoxGrid[i, j].Style = (Style)(this.Resources["SudokuUnitTextBox"]);
-                        TextBoxGrid[i, j].Name = "_" + index.ToString();
-                        TextBoxGrid[i, j].GotFocus += new RoutedEventHandler(gridGotFocus);
-                        TextBoxGrid[i, j].KeyDown += new KeyEventHandler(gridKeyDown);
-
-                        if (j >= 3 && j <= 5)
-                        {
-                            if ((i >= 0 && i <= 2) || (i >= 6 && i <= 8))
-                                TextBoxGrid[i, j].Background = new SolidColorBrush(c);
-                        }
-                        else
-                        {
-                            if (i >= 3 && i <= 5)
-                                TextBoxGrid[i, j].Background = new SolidColorBrush(c);
-                        }
-                        mainSection.Children.Add(TextBoxGrid[i, j]);
-                        index++;
+                        if ((i >= 0 && i <= 2) || (i >= 6 && i <= 8))
+                            TextBoxGrid[i, j].Background = new SolidColorBrush(c);
                     }
+                    else
+                    {
+                        if (i >= 3 && i <= 5)
+                            TextBoxGrid[i, j].Background = new SolidColorBrush(c);
+                    }
+                    mainSection.Children.Add(TextBoxGrid[i, j]);
+                    index++;
                 }
-                //((TextBox)mainSection.FindName("_0")).Focus(FocusState.Keyboard);
+            }
+            //((TextBox)mainSection.FindName("_0")).Focus(FocusState.Keyboard);
 
-                //Adding static controls
-                solveButton.Style = (Style)(this.Resources["SolveButton"]);
-                solveButton.Click += new RoutedEventHandler(startSolve);
-                clearButton.Style = (Style)(this.Resources["ClearButton"]);
-                clearButton.Click += new RoutedEventHandler(clearGrid);
-                StepToggle.Style = (Style)(this.Resources["StepToggle"]);
-                StepToggle.Toggled += new RoutedEventHandler(changedStepByStep);
-                mainSection.Children.Add(solveButton);
-                mainSection.Children.Add(clearButton);
-                mainSection.Children.Add(StepToggle);
+            //Adding static controls
+            solveButton.Style = (Style)(this.Resources["SolveButton"]);
+            solveButton.Click += new RoutedEventHandler(startSolve);
+            clearButton.Style = (Style)(this.Resources["ClearButton"]);
+            clearButton.Click += new RoutedEventHandler(clearGrid);
+            StepToggle.Style = (Style)(this.Resources["StepToggle"]);
+            StepToggle.Toggled += new RoutedEventHandler(changedStepByStep);
+            mainSection.Children.Add(solveButton);
+            mainSection.Children.Add(clearButton);
+            mainSection.Children.Add(StepToggle);
 
-                //Adding static MessageBox
-                MessageBox.Style = (Style)(this.Resources["MessageBox"]);
-                MessageBox.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
-                mainSection.Children.Add(MessageBox);
+            //Adding static MessageBox
+            MessageBox.Style = (Style)(this.Resources["MessageBox"]);
+            MessageBox.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
+            mainSection.Children.Add(MessageBox);
 
-                Logo.Opacity = 0;
-                Logo.Source = ImageFromRelativePath(this, "/Assets/SplashScreen.png");
-                mainSection.Children.Add(Logo);
+            Logo.Opacity = 0;
+            Logo.Source = ImageFromRelativePath(this, "/Assets/SplashScreen.png");
+            mainSection.Children.Add(Logo);
                 
-                setLayoutDimensions();
+            setLayoutDimensions();
         }
 
 
